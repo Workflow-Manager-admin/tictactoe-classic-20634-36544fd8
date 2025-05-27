@@ -40,52 +40,62 @@ const colors = {
   primary: '#ffffff',
   secondary: '#000000',
   accent: '#2196f3'
-}
+} as const;
 
-// 3x3 board, values: 'X' | 'O' | ''
-const board = ref(Array(9).fill(''))
-const currentPlayer = ref('X')
-const winner = ref(null) // 'X', 'O', or 'Draw'
-const winningLine = ref([]) // indexes of winning cells (for highlight)
+// Define types for the board and players
+type Player = 'X' | 'O';
+type Cell = Player | '';
+type Winner = Player | 'Draw' | null;
 
-function checkWinner(b) {
-  const wins = [
+const board = ref<Cell[]>(Array(9).fill(''));
+const currentPlayer = ref<Player>('X');
+const winner = ref<Winner>(null);
+// Store indexes of winning cells
+const winningLine = ref<number[]>([]);
+
+// PUBLIC_INTERFACE
+function checkWinner(b: Cell[]): Winner {
+  const wins: number[][] = [
     [0,1,2],[3,4,5],[6,7,8], // rows
     [0,3,6],[1,4,7],[2,5,8], // cols
     [0,4,8],[2,4,6]          // diagonals
-  ]
+  ];
   for (const line of wins) {
-    const [a, bIdx, c] = line
+    const [a, bIdx, c] = line;
     if (b[a] && b[a] === b[bIdx] && b[a] === b[c]) {
-      winningLine.value = line
-      return b[a]
+      winningLine.value = line;
+      return b[a] as Player;
     }
   }
-  if (b.every(val => val)) return 'Draw'
-  return null
+  if (b.every((val: Cell) => val)) return 'Draw';
+  return null;
 }
 
-function handleCellClick(idx) {
-  if (winner.value || board.value[idx]) return
-  board.value[idx] = currentPlayer.value
-  const r = checkWinner(board.value)
+// PUBLIC_INTERFACE
+function handleCellClick(idx: number): void {
+  if (winner.value || board.value[idx]) return;
+  board.value[idx] = currentPlayer.value;
+  const r = checkWinner(board.value);
   if (r) {
-    winner.value = r
+    winner.value = r;
   } else {
-    currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X'
+    currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';
   }
 }
 
-function resetGame() {
-  board.value = Array(9).fill('')
-  currentPlayer.value = 'X'
-  winner.value = null
-  winningLine.value = []
+// PUBLIC_INTERFACE
+function resetGame(): void {
+  board.value = Array(9).fill('') as Cell[];
+  currentPlayer.value = 'X';
+  winner.value = null;
+  winningLine.value = [];
 }
 
-const isGameOver = computed(() => winner.value !== null)
-function isWinningCell(idx) {
-  return winningLine.value.includes(idx)
+const isGameOver = computed(() => winner.value !== null);
+
+// PUBLIC_INTERFACE
+function isWinningCell(idx: number): boolean {
+  return winningLine.value.includes(idx);
 }
 </script>
 
